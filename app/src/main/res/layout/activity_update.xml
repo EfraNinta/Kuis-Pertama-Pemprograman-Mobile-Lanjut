@@ -1,0 +1,34 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <EditText
+        android:id="@+id/editNama"
+        android:hint="Masukkan Nama Lengkap"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:id="@+id/editNIM"
+        android:hint="Masukkan NIM"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Spinner
+        android:id="@+id/spinnerProdi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:text="Ubah"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="updateMahasiswa" />
+
+    <Button
+        android:text="Hapus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="hapusMahasiswa" />
+</LinearLayout>
