@@ -1,57 +1,77 @@
 package com.efranintabrtarigan.uts.kuisapplication;
 
-import android.content.Intent;
-import android.database.Cursor;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import java.util.ArrayList;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Toast;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ListView listView;
-    private DatabaseHelper dbHelper;
-    private ArrayList<String> mahasiswaList;
+    private static final int UPDATE_STUDENT_REQUEST = 2;
+    private StudentViewModel studentViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        dbHelper = new DatabaseHelper(this);
-        listView = findViewById(R.id.listView);
-        mahasiswaList = new ArrayList<>();
+        // Initialize RecyclerView
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setHasFixedSize(true);
 
-        loadMahasiswa();
+        // Set up Adapter
+        final StudentAdapter adapter = new StudentAdapter();
+        recyclerView.setAdapter(adapter);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        // Set up ViewModel
+        studentViewModel = new ViewModelProvider(this).get(StudentViewModel.class);
+        studentViewModel.getAllStudents().observe(this, new Observer<List<Student>>() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(MainActivity.this, UpdateActivity.class);
-                intent.putExtra("id", id);
-                startActivity(intent);
+            public void onChanged(List<Student> students) {
+                adapter.setStudents(students);
             }
+        });
+
+        // Set up listener for item click to open UpdateStudentActivity
+        adapter.setOnItemClickListener(new StudentAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(Student student) {
+                Intent intent = new Intent(MainActivity.this, UpdateStudentActivity.class);
+                intent.putExtra("student", (CharSequence) student);  // Pass the selected student
+                startActivityForResult(intent, UPDATE_STUDENT_REQUEST);
+            }
+        });
+
+        // Floating Action Button to add a new student
+        FloatingActionButton buttonAddStudent = findViewById(R.id.button_add_student);
+        buttonAddStudent.setOnClickListener(v -> {
+            // Open AddEditStudentActivity to add new student
+            Intent intent = new Intent(MainActivity.this, AddEditStudentActivity.class);
+            startActivity(intent);  // Open without expecting result for now
         });
     }
 
-    private void loadMahasiswa() {
-        Cursor cursor = dbHelper.getReadableDatabase().rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_MAHASISWA, null);
-        mahasiswaList.clear();
-        while (cursor.moveToNext()) {
-            String nama = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_NAMA));
-            mahasiswaList.add(nama);
+    // Override onActivityResult to handle result from UpdateStudentActivity
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == UPDATE_STUDENT_REQUEST && resultCode == RESULT_OK && data != null) {
+            String message = data.getStringExtra("result_message");
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "No changes were made", Toast.LENGTH_SHORT).show();
         }
-        cursor.close();
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mahasiswaList);
-        listView.setAdapter(adapter);
-    }
-
-    public void tambahMahasiswa(View view) {
-        Intent intent = new Intent(this, TambahActivity.class);
-        startActivity(intent);
     }
 }

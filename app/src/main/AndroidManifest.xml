@@ -11,6 +11,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KuisApplication"
         tools:targetApi="31">
+        <activity android:name=".UpdateStudentActivity" />
+        <activity android:name=".AddEditStudentActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
